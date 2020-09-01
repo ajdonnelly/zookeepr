@@ -1,18 +1,32 @@
+// creating a route that the front-end can request data from
 const { animals } = require('./data/animals');
 
+//require express to bring into server.js
 const express = require('express');
 
 const PORT = process.env.PORT || 3001;
 
+/*initiate the server-We assign express() to the app variable 
+so that we can later chain on methods to the Express.js server.*/
 const app = express();
+
+// parse incoming string or array data
+app.use(express.urlencoded({ extended: true }));
+// parse incoming JSON data
+app.use(express.json());
 
 // app.listen(3001, () => {
 //     console.log(`API server now on port 3001!`);
 //   });
+
+//method to make our server listen
 app.listen(PORT, () => {
     console.log(`API server now on port ${PORT}!`);
   });
 
+  // instead of handling the filter functionality 
+  //inside the .get() callback, we're going to break it out 
+  //into its own function
   function filterByQuery(query, animalsArray) {
     let personalityTraitsArray = [];
     // Note that we save the animalsArray as filteredResults here:
@@ -57,9 +71,16 @@ app.listen(PORT, () => {
     return result;
   }
 
-//get method requires two arguments, The first is a string that describes the route the client will have to fetch from. The second is a callback function that will execute every time that route is accessed with a GET request.
+//get callback
+//add the route for "animals" data-  "req" describes the route the client 
+//will have to fetch from. "res" is a callback function that will 
+//execute every time that route is accessed with a GET request.
 app.get('/api/animals', (req, res) => {
     let results = animals;
+    // call the filterByQuery() in the app.get() callback 
+    // /This function will take in req.query as an argument 
+    //and filter through the animals accordingly, returning 
+    //the new filtered array.
     if (req.query) {
       results = filterByQuery(req.query, results);
     }
@@ -69,8 +90,16 @@ app.get('/api/animals', (req, res) => {
   app.get('/api/animals/:id', (req, res) => {
     const result = findById(req.params.id, animals);
     if (result) {
+      // To send JSON, use json method this is attached to the res callback function
+      
       res.json(result);
     } else {
       res.send(404);
     }
+  });
+
+  app.post('/api/animals', (req, res) => {});app.post('/api/animals', (req, res) => {
+    // req.body is where our incoming content will be
+    console.log(req.body);
+    res.json(req.body);
   });
