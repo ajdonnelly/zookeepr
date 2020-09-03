@@ -1,19 +1,5 @@
-
-// We'll have to not only use .push() to save the new data 
-//in this local server.js copy of our animal data, but 
-//we'll also have to import and use the fs library to write 
-//that data to animals.json.
-const fs = require('fs');
-const path = require('path');
-
-
 //require express to bring into server.js
 const express = require('express');
-
-// creating a route that the front-end can request data from
-// whenever we use require() to import data or functionality, it's only reading the data and creating a copy of it to use
-const { animals } = require('./data/animals');
-
 
 // When Heroku runs our app, it sets an environment variable called process.env.PORT. We're going to tell our app to use that port, if it has been set, and if not, default to port 80
 const PORT = process.env.PORT || 3001;
@@ -22,19 +8,62 @@ const PORT = process.env.PORT || 3001;
 so that we can later chain on methods to the Express.js server.*/
 const app = express();
 
+// We'll have to not only use .push() to save the new data 
+//in this local server.js copy of our animal data, but 
+//we'll also have to import and use the fs library to write 
+//that data to animals.json.
+const fs = require('fs');
+const path = require('path');
+
+// creating a route that the front-end can request data from
+// whenever we use require() to import data or functionality, it's only reading the data and creating a copy of it to use
+const { animals } = require('./data/animals');
+
+
+//we can set up some more Express.js middleware that 
+//instructs the server to make certain files readily available 
+//and to not gate it behind a server endpoint.
+//this is bringing in all our front end assets and making them 
+//available to the server
+app.use(express.static('public'));
+
 // parse incoming string or array data
 // middleware-This is a method executed by our Express.js server that mounts a function to the server that our requests will pass through before getting to the intended endpoint.
 // method built into Express.js. It takes incoming POST data and converts it to key/value pairings that can be accessed in the req.body object.
 //The extended: true option set inside the method call informs our server that there may be sub-array data nested in it as well, so it needs to look as deep into the POST data as possible to parse all of the data correctly.
+// express.static() method. The way it works is that we provide a file path to a location in our application (in this case, the public folder) and instruct the server to make these files static resources. This means that all of our front-end code can now be accessed without having a specific server endpoint created for it!
 app.use(express.urlencoded({ extended: true }));
 
 // parse incoming JSON data
 //The express.json() method we used takes incoming POST data in the form of JSON and parses it into the req.body JavaScript object. 
 app.use(express.json());
 
+//getting index.html to be served from our Express.js server
+/// route points us to? It brings us to the root route of the server! 
+//This is the route used to create a homepage for a server
+app.get('/', (req, res) => {
+  
+  //this GET route has just one job to do, and that is to respond with an HTML page to display in the browser. So instead of using res.json(), we're using res.sendFile(), and all we have to do is tell them where to find the file we want our server to read and send back to the client
+  res.sendFile(path.join(__dirname, './public/index.html'));
+});
+
+//route will take us to /animals
+//a route that has the term api in it will deal in transference of JSON data, whereas a more normal-looking endpoint such as /animals should serve an HTML page.
+app.get('/animals', (req, res) => {
+  res.sendFile(path.join(__dirname, './public/animals.html'));
+});
+
+//route will take us to /zookeepers
+app.get('/zookeepers', (req, res) => {
+  res.sendFile(path.join(__dirname, './public/zookeepers.html'));
+});
+
+
 // app.listen(3001, () => {
 //     console.log(`API server now on port 3001!`);
 //   });
+
+
 
 //method to make our server listen
 //instead of fixed port, use PORT variable defined above
